@@ -1,6 +1,6 @@
 package ti4.map;
 
-import java.awt.*;
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,20 +10,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import ti4.ResourceHelper;
 import ti4.generator.Mapper;
 import ti4.generator.PositionMapper;
 import ti4.generator.TileHelper;
 import ti4.helpers.Constants;
 import ti4.helpers.FoWHelper;
+import ti4.helpers.RandomHelper;
 import ti4.helpers.Units.UnitKey;
 import ti4.helpers.Units.UnitType;
 import ti4.message.BotLogger;
@@ -251,7 +253,7 @@ public class Tile {
     public String getTilePath() {
         String tileName = Mapper.getTileID(tileID);
         if (("44".equals(tileID) || ("45".equals(tileID)))
-            && (ThreadLocalRandom.current().nextInt(Constants.EYE_CHANCE) == 0)) {
+            && (RandomHelper.isOneInX(Constants.EYE_CHANCE))) {
             tileName = "S15_Cucumber.png";
         }
         String tilePath = ResourceHelper.getInstance().getTileFile(tileName);

@@ -15,6 +15,7 @@ import ti4.helpers.ButtonHelper;
 import ti4.helpers.ButtonHelperFactionSpecific;
 import ti4.helpers.Constants;
 import ti4.helpers.Helper;
+import ti4.helpers.RandomHelper;
 import ti4.helpers.Units.UnitType;
 import ti4.listeners.annotations.ButtonHandler;
 import ti4.map.Game;
@@ -22,8 +23,6 @@ import ti4.map.Player;
 import ti4.map.Tile;
 import ti4.map.UnitHolder;
 import ti4.message.MessageHelper;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 public class StellarConverter extends SpecialSubcommandData {
 
@@ -74,7 +73,7 @@ public class StellarConverter extends SpecialSubcommandData {
             return;
         }
 
-        String message1 = (ThreadLocalRandom.current().nextInt(20) == 0 ? "# _Hey, Stellar!_" : "There is a great disturbance in the Force, as if millions of voices suddenly cried out in terror and were suddenly silenced.");
+        String message1 = (RandomHelper.isOneInX(20) ? "# _Hey, Stellar!_" : "There is a great disturbance in the Force, as if millions of voices suddenly cried out in terror and were suddenly silenced.");
         postTileInDisasterWatch(game, tile, 1, "Moments before disaster in game " + game.getName());
         MessageHelper.sendMessageToChannel(game.getActionsChannel(), message1);
 

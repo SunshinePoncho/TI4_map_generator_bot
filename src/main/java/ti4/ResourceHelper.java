@@ -4,8 +4,11 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+
 import org.jetbrains.annotations.Nullable;
+
 import ti4.helpers.Constants;
+import ti4.helpers.RandomHelper;
 import ti4.helpers.Storage;
 import ti4.helpers.Units.UnitKey;
 
@@ -80,7 +83,7 @@ public class ResourceHelper {
     @Nullable
     public String getUnitFile(String name) {
         if (name.endsWith(Constants.UNIT_DD)) {
-            if (ThreadLocalRandom.current().nextInt(Constants.EYE_CHANCE) == 0) {
+            if (RandomHelper.isOneInX(Constants.EYE_CHANCE)) {
                 return getResourceFromFolder("units/", name.replaceFirst(Constants.UNIT_DD, Constants.UNIT_DD_EYE), "Could not find eye file");
             }
         }

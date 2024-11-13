@@ -1231,7 +1231,7 @@ public class AgendaHelper {
 
         MessageHelper.MessageFunction resolveIxthian = (msg) -> {
             int rand = 4 + ThreadLocalRandom.current().nextInt(4);
-            if (ThreadLocalRandom.current().nextInt(5) == 0) { // random chance for an extra long wait
+            if (RandomHelper.isOneInX(5)) { // random chance for an extra long wait
                 rand += 8 + ThreadLocalRandom.current().nextInt(14);
             }
 

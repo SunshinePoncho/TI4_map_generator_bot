@@ -1,6 +1,12 @@
 package ti4.generator;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -17,15 +23,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
+import net.dv8tion.jda.api.utils.FileUpload;
 import ti4.ResourceHelper;
 import ti4.commands.fow.ShowGameAsPlayer;
 import ti4.helpers.ButtonHelper;
@@ -34,6 +39,7 @@ import ti4.helpers.DisplayType;
 import ti4.helpers.FoWHelper;
 import ti4.helpers.Helper;
 import ti4.helpers.ImageHelper;
+import ti4.helpers.RandomHelper;
 import ti4.helpers.Storage;
 import ti4.helpers.Units;
 import ti4.helpers.Units.UnitKey;
@@ -522,7 +528,7 @@ public class TileGenerator {
                 } else {
                     x += (isSpiral ? 36 : 0);
                     y += (isSpiral ? 43 : 0);
-                    String batFile = ResourceHelper.getInstance().getGeneralFile("zobat" + (ThreadLocalRandom.current().nextInt(4096) == 0 ? "_shiny" : "") + ".png");
+                    String batFile = ResourceHelper.getInstance().getGeneralFile("zobat" + (RandomHelper.isOneInX(4096) ? "_shiny" : "") + ".png");
                     BufferedImage bufferedImage = ImageHelper.read(batFile);
                     x += (345 - bufferedImage.getWidth()) / 2;
                     y += (300 - bufferedImage.getHeight()) / 2;
@@ -1716,7 +1722,7 @@ public class TileGenerator {
             }
 
             BufferedImage spoopy = null;
-            if ((unitKey.getUnitType() == Units.UnitType.Warsun) && (ThreadLocalRandom.current().nextInt(1000) == 0)) {
+            if (unitKey.getUnitType() == Units.UnitType.Warsun && RandomHelper.isOneInX(1000)) {
 
                 String spoopypath = ResourceHelper.getInstance().getSpoopyFile();
                 spoopy = ImageHelper.read(spoopypath);

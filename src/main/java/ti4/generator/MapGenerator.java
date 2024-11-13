@@ -1,6 +1,6 @@
 package ti4.generator;
 
-import static ti4.helpers.ImageHelper.*;
+import static ti4.helpers.ImageHelper.writeCompressedFormat;
 
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
@@ -50,7 +50,6 @@ import org.jetbrains.annotations.Nullable;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.FileUpload;
 import ti4.AsyncTI4DiscordBot;
@@ -68,6 +67,7 @@ import ti4.helpers.FoWHelper;
 import ti4.helpers.GlobalSettings;
 import ti4.helpers.Helper;
 import ti4.helpers.ImageHelper;
+import ti4.helpers.RandomHelper;
 import ti4.helpers.Storage;
 import ti4.helpers.StringHelper;
 import ti4.helpers.TIGLHelper.TIGLRank;
@@ -1864,7 +1864,7 @@ public class MapGenerator implements AutoCloseable {
                 BufferedImage spoopy = null;
                 if (unitKey.getUnitType() == UnitType.Warsun) {
                     int chanceToSeeSpoop = CalendarHelper.isNearHalloween() ? 10 : 1000;
-                    if (ThreadLocalRandom.current().nextInt(chanceToSeeSpoop) == 0) {
+                    if (RandomHelper.isOneInX(chanceToSeeSpoop)) {
                         String spoopypath = ResourceHelper.getInstance().getSpoopyFile();
                         spoopy = ImageHelper.read(spoopypath);
                     }

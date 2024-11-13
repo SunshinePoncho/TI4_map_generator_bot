@@ -578,7 +578,7 @@ public class ButtonHelperAgents {
                 MessageHelper.sendMessageToChannel(event.getMessageChannel(),
                     player.getFactionEmoji()
                         + " there were no glory tokens on the board to move. Go win some battles and earn some, or your ancestors will laugh at ya when "
-                        + (ThreadLocalRandom.current().nextInt(20) == 0 ? "(if) " : "") + "you reach Valhalla.");
+                        + (RandomHelper.isOneInX(20) ? "(if) " : "") + "you reach Valhalla.");
 
             }
         }

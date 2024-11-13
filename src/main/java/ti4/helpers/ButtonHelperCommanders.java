@@ -97,7 +97,7 @@ public class ButtonHelperCommanders {
             List<Button> stuffToTransButtons = ButtonHelper.getForcedPNSendButtons(game, player, p2);
             String message = p2.getRepresentationUnfogged()
                 + " You've been hit by"
-                + (ThreadLocalRandom.current().nextInt(1000) == 0 ? ", you've been struck by" : "")
+                + (RandomHelper.isOneInX(1000) ? ", you've been struck by" : "")
                 + " S'ula Mentarion, the Mentak commander. Please select the PN you would like to send.";
             MessageHelper.sendMessageToChannelWithButtons(p2.getCardsInfoThread(), message, stuffToTransButtons);
             MessageHelper.sendMessageToChannel(player.getCorrectChannel(),
