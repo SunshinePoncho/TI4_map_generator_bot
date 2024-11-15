@@ -5161,8 +5161,7 @@ public class ButtonHelper {
         }
 
         MessageHelper.sendMessageToChannel(player.getCorrectChannel(),
-            player.getRepresentation()
-                + "Choose an objective to make scorable. Reminder that in a normal game you can't choose a stage 2 to make scorable until after round 3 is over",
+            player.getRepresentation() + "Choose an objective to make scorable. Reminder that in a normal game you can't choose a stage 2 to make scorable until after round 3 is over",
             buttons);
     }
 

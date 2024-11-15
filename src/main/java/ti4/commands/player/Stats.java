@@ -219,7 +219,7 @@ public class Stats extends PlayerSubcommandData {
 
         OptionMapping optionSC = event.getOption(Constants.STRATEGY_CARD);
         if (optionSC != null) {
-            SCPick.secondHalfOfPickSC(event, game, player, optionSC.getAsInt());
+            SCPick.attemptToPickSC(event, game, player, optionSC.getAsInt());
         }
 
         OptionMapping optionSCPlayed = event.getOption(Constants.SC_PLAYED);

@@ -98,7 +98,7 @@ public class Game extends GameProperties {
     private final MiltyDraftManager miltyDraftManager;
     private final Map<String, String> fowOptions = new HashMap<>();
     private final Map<Integer, Boolean> scPlayed = new HashMap<>();
-    private final Map<String, String> checkingForAllReacts = new HashMap<>();
+    private final Map<String, String> storedValues = new HashMap<>();
     private final String[] listOfTilePinged = new String[10];
 
     // TODO (Jazz): These should be easily added to GameProperties
@@ -659,20 +659,20 @@ public class Game extends GameProperties {
     }
 
     public void setCurrentReacts(String messageID, String factionsWhoReacted) {
-        checkingForAllReacts.put(messageID, factionsWhoReacted);
+        storedValues.put(messageID, factionsWhoReacted);
     }
 
     public void removeMessageIDFromCurrentReacts(String messageID) {
-        checkingForAllReacts.remove(messageID);
+        storedValues.remove(messageID);
     }
 
     public Map<String, String> getMessagesThatICheckedForAllReacts() {
-        return checkingForAllReacts;
+        return storedValues;
     }
 
-    public String getFactionsThatReactedToThis(String messageID) {
-        if (checkingForAllReacts.get(messageID) != null) {
-            return checkingForAllReacts.get(messageID);
+    public String getEscapedStoredValue(String key) {
+        if (storedValues.get(key) != null) {
+            return storedValues.get(key);
         } else {
             return "";
         }
@@ -680,21 +680,21 @@ public class Game extends GameProperties {
 
     public void clearAllEmptyStoredValues() {
         // Remove the entry if the value is empty
-        checkingForAllReacts.entrySet().removeIf(entry -> entry.getValue() == null || entry.getValue().isEmpty());
+        storedValues.entrySet().removeIf(entry -> entry.getValue() == null || entry.getValue().isEmpty());
     }
 
     public void setStoredValue(String key, String value) {
         value = StringHelper.escape(value);
-        checkingForAllReacts.put(key, value);
+        storedValues.put(key, value);
     }
 
     public String getStoredValue(String key) {
-        String value = getFactionsThatReactedToThis(key);
+        String value = getEscapedStoredValue(key);
         return StringHelper.unescape(value);
     }
 
     public void removeStoredValue(String key) {
-        checkingForAllReacts.remove(key);
+        storedValues.remove(key);
     }
 
     public void resetCurrentAgendaVotes() {
