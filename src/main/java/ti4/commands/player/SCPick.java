@@ -78,10 +78,10 @@ public class SCPick extends PlayerSubcommandData {
             return;
         }
 
-        OptionMapping option = event.getOption(Constants.STRATEGY_CARD);
-        int scPicked = option.getAsInt();
+        int scPicked = event.getOption(Constants.STRATEGY_CARD, 0, OptionMapping::getAsInt);
 
-        boolean pickSuccessful = Stats.pickSC(event, game, player, option);
+
+        boolean pickSuccessful = Stats.pickSC(event, game, player, event.getOption(Constants.STRATEGY_CARD));
         Set<Integer> playerSCs = player.getSCs();
         if (!pickSuccessful) {
             if (game.isFowMode()) {
@@ -110,9 +110,9 @@ public class SCPick extends PlayerSubcommandData {
     @ButtonHandler("scPick_")
     public static void scPick(ButtonInteractionEvent event, Game game, Player player, String buttonID) {
         String num = buttonID.replace("scPick_", "");
-        int scpick = Integer.parseInt(num);
+        int scPick = Integer.parseInt(num);
         if (game.getStoredValue("Public Disgrace") != null
-            && game.getStoredValue("Public Disgrace").contains("_" + scpick)
+            && game.getStoredValue("Public Disgrace").contains("_" + scPick)
             && (game.getStoredValue("Public Disgrace Only").isEmpty() || game.getStoredValue("Public Disgrace Only").contains(player.getFaction()))) {
             for (Player p2 : game.getRealPlayers()) {
                 if (p2 == player) {
@@ -123,15 +123,14 @@ public class SCPick extends PlayerSubcommandData {
                     PlayAC.playAC(event, game, p2, "disgrace", game.getMainGameChannel());
                     game.setStoredValue("Public Disgrace", "");
                     Map<Integer, Integer> scTradeGoods = game.getScTradeGoods();
-                    int scNumber = scpick;
-                    Integer tgCount = scTradeGoods.get(scNumber);
+                    Integer tgCount = scTradeGoods.get(scPick);
                     String msg = player.getRepresentationUnfogged() +
-                        "\n> Picked: " + Helper.getSCRepresentation(game, scNumber);
+                        "\n> Picked: " + Helper.getSCRepresentation(game, scPick);
                     MessageHelper.sendMessageToChannel(event.getMessageChannel(), msg);
 
                     MessageHelper.sendMessageToChannel(player.getCorrectChannel(),
                         player.getRepresentation()
-                            + " you have been Public Disgrace'd because someone preset it to occur when the number " + scpick
+                            + " you have been Public Disgrace'd because someone preset it to occur when the number " + scPick
                             + " was chosen. If this is a mistake or the Public Disgrace is Sabo'd, feel free to pick the strategy card again. Otherwise, pick a different strategy card.");
                     return;
                 }
@@ -149,11 +148,11 @@ public class SCPick extends PlayerSubcommandData {
         }
 
         if (game.getLaws().containsKey("checks") || game.getLaws().containsKey("absol_checks")) {
-            SCPick.secondHalfOfSCPickWhenChecksNBalances(event, player, game, scpick);
+            SCPick.secondHalfOfSCPickWhenChecksNBalances(event, player, game, scPick);
         } else {
-            boolean pickSuccessful = Stats.secondHalfOfPickSC(event, game, player, scpick);
+            boolean pickSuccessful = Stats.secondHalfOfPickSC(event, game, player, scPick);
             if (pickSuccessful) {
-                SCPick.secondHalfOfSCPick(event, player, game, scpick);
+                SCPick.secondHalfOfSCPick(event, player, game, scPick);
                 ButtonHelper.deleteMessage(event);
             }
         }
@@ -197,34 +196,32 @@ public class SCPick extends PlayerSubcommandData {
 
     public static void secondHalfOfSCPickWhenChecksNBalances(ButtonInteractionEvent event, Player player, Game game, int scPicked) {
         List<Button> buttons = getPlayerOptionsForChecksNBalances(event, player, game, scPicked);
-        Map<Integer, Integer> scTradeGoods = game.getScTradeGoods();
-
+        
         for (Player playerStats : game.getRealPlayers()) {
             if (playerStats.getSCs().contains(scPicked)) {
                 MessageHelper.sendMessageToChannel(event.getChannel(), Helper.getSCName(scPicked, game) + " is already picked.");
                 return;
             }
         }
-        Integer tgCount = scTradeGoods.get(scPicked);
-        if (tgCount != null && tgCount != 0) {
-            int tg = player.getTg();
-            tg += tgCount;
-            MessageHelper.sendMessageToChannel(event.getChannel(), player.getRepresentation() + " gained " + tgCount + " TG" + (tgCount == 1 ? "" : "s") + " from picking " + Helper.getSCName(scPicked, game));
+
+        Integer tgCountOnSC = game.getScTradeGoods().get(scPicked);
+        if (tgCountOnSC != null && tgCountOnSC != 0) {
+            String gainTG = player.gainTG(tgCountOnSC);
+            game.setScTradeGood(scPicked, 0);
+            MessageHelper.sendMessageToChannel(event.getChannel(), player.getRepresentation() + " gained " + Emojis.tg(tgCountOnSC) + " " + gainTG + " from picking " + Helper.getSCRepresentation(game, scPicked));
             if (game.isFowMode()) {
-                String messageToSend = Emojis.getColorEmojiWithName(player.getColor()) + " gained " + tgCount + " TG" + (tgCount == 1 ? "" : "s") + " from picking " + Helper.getSCName(scPicked, game);
+                String messageToSend = Emojis.getColorEmojiWithName(player.getColor()) + " gained " + Emojis.tg(tgCountOnSC) + " " + gainTG + " from picking " + Helper.getSCRepresentation(game, scPicked);
                 FoWHelper.pingAllPlayersWithFullStats(game, event, player, messageToSend);
             }
-            player.setTg(tg);
             CommanderUnlockCheck.checkPlayer(player, "hacan");
             ButtonHelperAbilities.pillageCheck(player, game);
-            game.setScTradeGood(scPicked, 0);
             if (scPicked == 2 && game.isRedTapeMode()) {
-                for (int x = 0; x < tgCount; x++) {
+                for (int x = 0; x < tgCountOnSC; x++) {
                     ButtonHelper.offerRedTapeButtons(game, player);
                 }
             }
         }
-        MessageHelper.sendMessageToChannelWithButtons(player.getCorrectChannel(), player.getRepresentationUnfogged() + " chose which player to give this stratgy card to.", buttons);
+        MessageHelper.sendMessageToChannelWithButtons(player.getCorrectChannel(), player.getRepresentationUnfogged() + " choose which player to give this strategy card to:", buttons);
         event.getMessage().delete().queue();
     }
 
