@@ -11,6 +11,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -40,6 +41,7 @@ import ti4.listeners.annotations.ButtonHandler;
 import ti4.map.Game;
 import ti4.map.Player;
 import ti4.message.MessageHelper;
+import ti4.model.StrategyCardModel;
 
 public class SCPick extends PlayerSubcommandData {
     public SCPick() {
@@ -81,19 +83,20 @@ public class SCPick extends PlayerSubcommandData {
         int scPicked = event.getOption(Constants.STRATEGY_CARD, 0, OptionMapping::getAsInt);
 
 
-        boolean pickSuccessful = Stats.pickSC(event, game, player, event.getOption(Constants.STRATEGY_CARD));
+        boolean pickSuccessful = secondHalfOfPickSC(event, game, player, scPicked);
         Set<Integer> playerSCs = player.getSCs();
-        if (!pickSuccessful) {
-            if (game.isFowMode()) {
-                String[] scs = { Constants.SC2, Constants.SC3, Constants.SC4, Constants.SC5, Constants.SC6 };
-                int c = 0;
-                while (playerSCs.isEmpty() && c < 5 && !pickSuccessful) {
-                    if (event.getOption(scs[c]) != null) {
-                        pickSuccessful = Stats.pickSC(event, game, player, event.getOption(scs[c]));
-                    }
-                    playerSCs = player.getSCs();
-                    c++;
+
+        // If FoW, try to use additional choices
+        if (!pickSuccessful && game.isFowMode()) {
+            String[] scs = { Constants.SC2, Constants.SC3, Constants.SC4, Constants.SC5, Constants.SC6 };
+            int c = 0;
+            while (playerSCs.isEmpty() && c < 5 && !pickSuccessful) {
+                OptionMapping scOption = event.getOption(scs[c]);
+                if (scOption != null) {
+                    pickSuccessful = secondHalfOfPickSC(event, game, player, scOption.getAsInt());
                 }
+                playerSCs = player.getSCs();
+                c++;
             }
             if (!pickSuccessful) {
                 return;
@@ -104,7 +107,7 @@ public class SCPick extends PlayerSubcommandData {
             MessageHelper.sendMessageToEventChannel(event, "No strategy card picked.");
             return;
         }
-        secondHalfOfSCPick(event, player, game, scPicked);
+        doAdditionalStuffAfterPickingSC(event, player, game, scPicked);
     }
 
     @ButtonHandler("scPick_")
@@ -150,9 +153,9 @@ public class SCPick extends PlayerSubcommandData {
         if (game.getLaws().containsKey("checks") || game.getLaws().containsKey("absol_checks")) {
             SCPick.secondHalfOfSCPickWhenChecksNBalances(event, player, game, scPick);
         } else {
-            boolean pickSuccessful = Stats.secondHalfOfPickSC(event, game, player, scPick);
+            boolean pickSuccessful = SCPick.secondHalfOfPickSC(event, game, player, scPick);
             if (pickSuccessful) {
-                SCPick.secondHalfOfSCPick(event, player, game, scPick);
+                SCPick.doAdditionalStuffAfterPickingSC(event, player, game, scPick);
                 ButtonHelper.deleteMessage(event);
             }
         }
@@ -232,7 +235,7 @@ public class SCPick extends PlayerSubcommandData {
         String factionPicked = buttonID.split("_")[2];
         Player p2 = game.getPlayerFromColorOrFaction(factionPicked);
 
-        Stats.secondHalfOfPickSC(event, game, p2, scpick);
+        SCPick.secondHalfOfPickSC(event, game, p2, scpick);
 
         String recipientMessage = p2.getRepresentationUnfogged() + " was given " + Helper.getSCName(scpick, game)
             + (!game.isFowMode() ? " by " + player.getFactionEmoji() : "");
@@ -287,7 +290,69 @@ public class SCPick extends PlayerSubcommandData {
         }
     }
 
-    public static void secondHalfOfSCPick(GenericInteractionCreateEvent event, Player player, Game game, int scPicked) {
+    public static boolean secondHalfOfPickSC(GenericInteractionCreateEvent event, Game game, Player player, int scNumber) {
+        Map<Integer, Integer> scTradeGoods = game.getScTradeGoods();
+        if (player.getColor() == null || "null".equals(player.getColor()) || player.getFaction() == null) {
+            MessageHelper.sendMessageToChannel((MessageChannel) event.getChannel(),
+                "Can only pick strategy card if both faction and color have been picked.");
+            return false;
+        }
+        if (!scTradeGoods.containsKey(scNumber)) {
+            MessageHelper.sendMessageToChannel((MessageChannel) event.getChannel(),
+                "Strategy Card must be from possible ones in Game: " + scTradeGoods.keySet());
+            return false;
+        }
+
+        Map<String, Player> players = game.getPlayers();
+        for (Player playerStats : players.values()) {
+            if (playerStats.getSCs().contains(scNumber)) {
+                MessageHelper.sendMessageToChannel((MessageChannel) event.getChannel(),
+                    Helper.getSCName(scNumber, game) + " is already picked.");
+                return false;
+            }
+        }
+
+        player.addSC(scNumber);
+        if (game.isFowMode()) {
+            String messageToSend = Emojis.getColorEmojiWithName(player.getColor()) + " picked " + Helper.getSCName(scNumber, game);
+            FoWHelper.pingAllPlayersWithFullStats(game, event, player, messageToSend);
+        }
+
+        StrategyCardModel scModel = game.getStrategyCardModelByInitiative(scNumber).orElse(null);
+
+        // WARNING IF PICKING TRADE WHEN PLAYER DOES NOT HAVE THEIR TRADE AGREEMENT
+        if (scModel.usesAutomationForSCID("pok5trade") && !player.getPromissoryNotes().containsKey(player.getColor() + "_ta")) {
+            String message = player.getRepresentationUnfogged() + " heads up, you just picked Trade but don't currently hold your Trade Agreement";
+            MessageHelper.sendMessageToChannel(player.getCardsInfoThread(), message);
+        }
+
+        Integer tgCount = scTradeGoods.get(scNumber);
+        String msg = player.getRepresentationUnfogged() +
+            "\n> Picked: " + Helper.getSCRepresentation(game, scNumber);
+        MessageHelper.sendMessageToChannel(player.getCorrectChannel(), msg);
+        if (tgCount != null && tgCount != 0) {
+            int tg = player.getTg();
+            tg += tgCount;
+            MessageHelper.sendMessageToChannel(player.getCorrectChannel(),
+                player.getRepresentation() + " gained " + tgCount + " TG" + (tgCount == 1 ? "" : "s") + " from picking " + Helper.getSCName(scNumber, game));
+            if (game.isFowMode()) {
+                String messageToSend = Emojis.getColorEmojiWithName(player.getColor()) + " gained " + tgCount
+                    + " TG" + (tgCount == 1 ? "" : "s") + " from picking " + Helper.getSCName(scNumber, game);
+                FoWHelper.pingAllPlayersWithFullStats(game, event, player, messageToSend);
+            }
+            player.setTg(tg);
+            CommanderUnlockCheck.checkPlayer(player, "hacan");
+            ButtonHelperAbilities.pillageCheck(player, game);
+            if (scNumber == 2 && game.isRedTapeMode()) {
+                for (int x = 0; x < tgCount; x++) {
+                    ButtonHelper.offerRedTapeButtons(game, player);
+                }
+            }
+        }
+        return true;
+    }
+
+    public static void doAdditionalStuffAfterPickingSC(GenericInteractionCreateEvent event, Player player, Game game, int scPicked) {
         boolean isFowPrivateGame = FoWHelper.isPrivateGame(game, event);
 
         String msgExtra = "";
