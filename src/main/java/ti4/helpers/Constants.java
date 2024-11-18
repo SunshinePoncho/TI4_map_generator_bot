@@ -421,6 +421,11 @@ public class Constants {
     public static final String REMOVE_PO_FROM_GAME = "remove_po_from_game";
     public static final String REMOVE_SC_FROM_GAME = "remove_sc_from_game";
 
+    public static final String SET_PO_DECK = "set_po_deck";
+    public static final String SET_PO_DECK_STAGE1_LIST = "stage1_ids";
+    public static final String SET_PO_DECK_STAGE2_LIST = "stage2_ids";
+    public static final String SET_PO_DECK_SHUFFLE = "shuffle";
+
     public static final String SO_ID = "so_id";
     public static final String AGENDA_ID = "agenda_id";
     public static final String CURRENT_AGENDA_INFO = "current_agenda_info";
@@ -653,6 +658,8 @@ public class Constants {
     public static final String RELIC_INFO = "info";
     public static final String PUT_TOP = "put_top";
     public static final String PUT_BOTTOM = "put_bottom";
+    public static final String PUT_IN_DECK = "put_in_deck";
+    public static final String PUT_ON_BOTTOM = "put_on_bottom";
     public static final String SHUFFLE_AGENDAS = "shuffle_deck";
     public static final String RESET_AGENDAS = "reset_deck";
     public static final String RESET_DRAW_STATE_FOR_AGENDAS = "reset_draw_state_for_deck";

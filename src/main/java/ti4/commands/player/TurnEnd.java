@@ -20,8 +20,6 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.function.Consumers;
 import ti4.buttons.Buttons;
-import ti4.commands.cardspn.PNInfo;
-import ti4.commands.cardsso.SOInfo;
 import ti4.commands.leaders.CommanderUnlockCheck;
 import ti4.commands.status.ListPlayerInfoButton;
 import ti4.commands2.CommandHelper;
@@ -36,6 +34,8 @@ import ti4.helpers.Constants;
 import ti4.helpers.Emojis;
 import ti4.helpers.FoWHelper;
 import ti4.helpers.Helper;
+import ti4.helpers.PromissoryNoteHelper;
+import ti4.helpers.SecretObjectiveHelper;
 import ti4.helpers.Units.UnitKey;
 import ti4.helpers.Units.UnitType;
 import ti4.helpers.async.RoundSummaryHelper;
@@ -54,7 +54,7 @@ public class TurnEnd extends PlayerSubcommandData {
     public TurnEnd() {
         super(Constants.TURN_END, "End Turn");
         addOptions(new OptionData(OptionType.STRING, Constants.FACTION_COLOR, "Faction or Color for which you set stats").setAutoComplete(true));
-        addOptions(new OptionData(OptionType.STRING, Constants.CONFIRM, "In FoW, confirm with YES if you are not the active player").setRequired(false));
+        addOptions(new OptionData(OptionType.STRING, Constants.CONFIRM, "In FoW, confirm with YES if you are not the active player"));
     }
 
     @Override
@@ -265,7 +265,7 @@ public class TurnEnd extends PlayerSubcommandData {
         game.setPhaseOfGame("statusScoring");
         game.setStoredValue("startTimeOfRound" + game.getRound() + "StatusScoring", System.currentTimeMillis() + "");
         for (Player player : game.getRealPlayers()) {
-            SOInfo.sendSecretObjectiveInfo(game, player);
+            SecretObjectiveHelper.sendSecretObjectiveInfo(game, player);
             List<String> relics = new ArrayList<>(player.getRelics());
             for (String relic : relics) {
                 if (player.getExhaustedRelics().contains(relic) && relic.contains("axisorder")) {
@@ -347,8 +347,8 @@ public class TurnEnd extends PlayerSubcommandData {
                 if (pnModel.getText().contains("eturn this card") && (pnModel.getText().contains("start of the status phase") || pnModel.getText().contains("beginning of the status phase"))) {
                     player.removePromissoryNote(pn);
                     pnOwner.setPromissoryNote(pn);
-                    PNInfo.sendPromissoryNoteInfo(game, pnOwner, false);
-                    PNInfo.sendPromissoryNoteInfo(game, player, false);
+                    PromissoryNoteHelper.sendPromissoryNoteInfo(game, pnOwner, false);
+                    PromissoryNoteHelper.sendPromissoryNoteInfo(game, player, false);
                     MessageHelper.sendMessageToChannel(player.getCorrectChannel(), pnOwner.getFactionEmoji() + " " + pnModel.getName() + " was returned");
                 }
             }

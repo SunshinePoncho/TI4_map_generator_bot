@@ -19,17 +19,17 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.restaction.ThreadChannelAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import ti4.buttons.Buttons;
-import ti4.commands.cardsac.PlayAC;
-import ti4.commands.event.RevealEvent;
-import ti4.commands.relic.RelicDraw;
 import ti4.commands2.CommandHelper;
 import ti4.generator.Mapper;
+import ti4.helpers.ActionCardHelper;
 import ti4.helpers.ButtonHelper;
 import ti4.helpers.ButtonHelperAbilities;
 import ti4.helpers.Constants;
 import ti4.helpers.CryypterHelper;
 import ti4.helpers.Emojis;
+import ti4.helpers.EventHelper;
 import ti4.helpers.Helper;
+import ti4.helpers.RelicHelper;
 import ti4.listeners.annotations.ButtonHandler;
 import ti4.map.Game;
 import ti4.map.Player;
@@ -103,7 +103,7 @@ public class SCPlay extends PlayerSubcommandData {
                     if (p2 == player) {
                         continue;
                     }
-                    PlayAC.playAC(event, game, p2, "coup", game.getMainGameChannel());
+                    ActionCardHelper.playAC(event, game, p2, "coup", game.getMainGameChannel());
                     List<Button> systemButtons = TurnStart.getStartOfTurnButtons(player, game, true, event);
                     game.setJustPlayedComponentAC(true);
                     String message = "Use buttons to end turn, or (if Coup is Sabo'd) play your strategy card.";
@@ -420,7 +420,7 @@ public class SCPlay extends PlayerSubcommandData {
     }
 
     /**
-     * These buttons are only the buttons to be attached to the SC play itself, for all players to use - any additional buttons for the Primary SC holder should add specific logic to {@link SCPlay#scPlay()}
+     * These buttons are only the buttons to be attached to the SC play itself, for all players to use - any additional buttons for the Primary SC holder should add specific logic to {@link SCPlay scPlay}
      * 
      * @return Buttons for the SCPlay message only (for all players to use)
      */
@@ -596,8 +596,8 @@ public class SCPlay extends PlayerSubcommandData {
             return;
         }
         event.editButton(event.getButton().asDisabled()).queue();
-        RelicDraw.drawRelicAndNotify(player, event, game);
-        RevealEvent.revealEvent(event, game, game.getMainGameChannel());
+        RelicHelper.drawRelicAndNotify(player, event, game);
+        EventHelper.revealEvent(event, game, game.getMainGameChannel());
     }
 
     @ButtonHandler("ignisAuroraSC8Secondary")

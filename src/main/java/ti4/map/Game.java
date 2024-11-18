@@ -49,7 +49,6 @@ import net.dv8tion.jda.internal.utils.tuple.Pair;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import ti4.AsyncTI4DiscordBot;
-import ti4.commands.cardsso.SOInfo;
 import ti4.commands.leaders.CommanderUnlockCheck;
 import ti4.commands.milty.MiltyDraftManager;
 import ti4.commands.planet.PlanetRemove;
@@ -64,6 +63,7 @@ import ti4.helpers.DisplayType;
 import ti4.helpers.Emojis;
 import ti4.helpers.FoWHelper;
 import ti4.helpers.Helper;
+import ti4.helpers.SecretObjectiveHelper;
 import ti4.helpers.StringHelper;
 import ti4.helpers.TIGLHelper.TIGLRank;
 import ti4.helpers.Units.UnitKey;
@@ -2008,30 +2008,28 @@ public class Game extends GameProperties {
                 break;
             }
         }
-        if (!id.isEmpty()) {
-            if ("warrant".equalsIgnoreCase(id)) {
-                for (Player p2 : getRealPlayers()) {
-                    if (ButtonHelper.isPlayerElected(this, p2, id)) {
-                        p2.setSearchWarrant(false);
-                    }
-                }
-            }
-            if ("censure".equalsIgnoreCase(id)) {
-
-                Map<String, Integer> customPOs = new HashMap<>(getRevealedPublicObjectives());
-                for (String customPO : customPOs.keySet()) {
-                    if (customPO.toLowerCase().contains("political censure")) {
-                        removeCustomPO(customPOs.get(customPO));
-                    }
-                }
-
-            }
-            laws.remove(id);
-            lawsInfo.remove(id);
-            addDiscardAgenda(id);
-            return true;
+        if (id.isEmpty()) {
+            return false;
         }
-        return false;
+        if ("warrant".equalsIgnoreCase(id)) {
+            for (Player p2 : getRealPlayers()) {
+                if (ButtonHelper.isPlayerElected(this, p2, id)) {
+                    p2.setSearchWarrant(false);
+                }
+            }
+        }
+        if ("censure".equalsIgnoreCase(id)) {
+            Map<String, Integer> customPOs = new HashMap<>(getRevealedPublicObjectives());
+            for (String customPO : customPOs.keySet()) {
+                if (customPO.toLowerCase().contains("political censure")) {
+                    removeCustomPO(customPOs.get(customPO));
+                }
+            }
+        }
+        laws.remove(id);
+        lawsInfo.remove(id);
+        addDiscardAgenda(id);
+        return true;
     }
 
     public boolean removeLaw(String id) {
@@ -2560,7 +2558,7 @@ public class Game extends GameProperties {
                 + ") and should discard one. If your game is playing with a higher SO limit, you may change that in /game setup.";
             MessageHelper.sendMessageToChannel(player.getCardsInfoThread(), msg);
             String secretScoreMsg = "Click a button below to discard your Secret Objective";
-            List<Button> soButtons = SOInfo.getUnscoredSecretObjectiveDiscardButtons(this, player);
+            List<Button> soButtons = SecretObjectiveHelper.getUnscoredSecretObjectiveDiscardButtons(player);
             if (!soButtons.isEmpty()) {
                 MessageHelper.sendMessageToChannelWithButtons(player.getCardsInfoThread(), secretScoreMsg,
                     soButtons);
@@ -3193,24 +3191,20 @@ public class Game extends GameProperties {
             .count() > 1;
     }
 
-    @JsonIgnore
-    public Map<String, Player> getPlayerControlMap() {
-        Map<String, Player> controlMap = new HashMap<>();
-        for (Tile tile : getTileMap().values()) {
-            Player controllingPlayer = null;
-            for (Player p : getRealPlayers()) {
-                if (FoWHelper.playerHasActualShipsInSystem(p, tile)) {
-                    if (controllingPlayer == null) {
-                        controllingPlayer = p;
-                    } else {
-                        controllingPlayer = null;
-                        break;
-                    }
-                }
-            }
-            controlMap.put(tile.getPosition(), controllingPlayer);
+    public Player getPlayerThatControlsTile(String tileId) {
+        return getPlayerThatControlsTile(tileMap.get(tileId));
+    }
+
+    public Player getPlayerThatControlsTile(Tile tile) {
+        if (tile == null) {
+            return null;
         }
-        return controlMap;
+        for (Player player : getRealPlayers()) {
+            if (FoWHelper.playerHasActualShipsInSystem(player, tile)) {
+                return player;
+            }
+        }
+        return null;
     }
 
     public void addPlayer(String id, String name) {

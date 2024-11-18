@@ -129,7 +129,6 @@ public class MapGenerator implements AutoCloseable {
     private final int heightForGameInfo;
     private final boolean extraRow;
     private final boolean allEyesOnMe;
-    private final Map<String, Player> playerControlMap;
 
     private final List<WebsiteOverlay> websiteOverlays = new ArrayList<>();
     private int mapWidth;
@@ -153,7 +152,6 @@ public class MapGenerator implements AutoCloseable {
         this.game = game;
         this.displayType = defaultIfNull(displayType);
         this.event = event;
-        this.playerControlMap = game.getPlayerControlMap();
 
         String controlID = Mapper.getControlID("red");
         BufferedImage bufferedImage = ImageHelper.readScaled(Mapper.getCCPath(controlID), 0.45f);
@@ -360,7 +358,6 @@ public class MapGenerator implements AutoCloseable {
         keys.removeAll(tilesToShow);
         for (String key : keys) {
             tilesToDisplay.remove(key);
-            playerControlMap.remove(key);
             if (fowPlayer != null) {
                 tilesToDisplay.put(key, fowPlayer.buildFogTile(key, fowPlayer));
             }
@@ -1549,10 +1546,6 @@ public class MapGenerator implements AutoCloseable {
                 case "policy_the_economy_exploit" -> abilityFileName = "pa_ds_olra_policy_ineg";
             }
 
-            if (abilityFileName == null) {
-                continue;
-            }
-
             boolean isExhaustedLocked = player.getExhaustedAbilities().contains(abilityID);
             if (isExhaustedLocked) {
                 graphics.setColor(Color.GRAY);
@@ -1560,11 +1553,12 @@ public class MapGenerator implements AutoCloseable {
                 graphics.setColor(Color.WHITE);
             }
 
-            String status = isExhaustedLocked ? "_exh" : "_rdy";
-            abilityFileName += status + ".png";
-            String resourcePath = ResourceHelper.getInstance().getPAResource(abilityFileName);
             AbilityModel abilityModel = Mapper.getAbility(abilityID);
-            if (resourcePath != null) {
+            if (abilityFileName != null) {
+                String status = isExhaustedLocked ? "_exh" : "_rdy";
+                abilityFileName += status + ".png";
+                String resourcePath = ResourceHelper.getInstance().getPAResource(abilityFileName);
+
                 BufferedImage resourceBufferedImage = ImageHelper.read(resourcePath);
                 graphics.drawImage(resourceBufferedImage, x + deltaX, y, null);
                 drawRectWithOverlay(g2, x + deltaX - 2, y - 2, 44, 152, abilityModel);
@@ -3379,7 +3373,6 @@ public class MapGenerator implements AutoCloseable {
         } else if (displayType == DisplayType.techskips) {
             List<String> techFiles = new ArrayList<>();
             for (String planet : player.getPlanets()) {
-                PlanetModel custodiaVigilia = Mapper.getPlanet(planet);
                 if (game.getTileFromPlanet(planet) == null) {
                     Planet planetReal = game.getPlanetsInfo().get(planet);
                     List<String> skips = planetReal.getTechSpeciality();

@@ -15,10 +15,6 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.apache.commons.lang3.StringUtils;
 import ti4.buttons.Buttons;
-import ti4.commands.cardsac.ACInfo;
-import ti4.commands.cardsac.DiscardACRandom;
-import ti4.commands.cardspn.PNInfo;
-import ti4.commands.cardspn.PlayPN;
 import ti4.commands.combat.StartCombat;
 import ti4.commands.franken.LeaderAdd;
 import ti4.commands.leaders.HeroPlay;
@@ -773,7 +769,7 @@ public class ButtonHelperHeroes {
         planetReal.addToken("token_dmz.png");
         unitHolder.removeAllUnits(player.getColor());
         if (player.getExhaustedPlanets().contains(planet)) {
-            PlanetRefresh.doAction(player, planet, game);
+            PlanetRefresh.doAction(player, planet);
         }
         MessageHelper.sendMessageToChannel(event.getChannel(),
             "Attached Count Otto P'may, the Free Systems hero, to " + Helper.getPlanetRepresentation(planet, game));
@@ -859,7 +855,7 @@ public class ButtonHelperHeroes {
             MoveUnits.flipMallice(event, tile, game);
         }
         PlanetAdd.doAction(player, planetID, game, event, false);
-        PlanetRefresh.doAction(player, planetID, game);
+        PlanetRefresh.doAction(player, planetID);
         String planetRep = Helper.getPlanetRepresentationPlusEmojiPlusResourceInfluence(planetID, game);
         String msg = player.getFactionEmojiOrColor() + " claimed the planet " + planetRep + " using The Lord, a Ghemina hero.";
         MessageHelper.sendMessageToChannel(player.getCorrectChannel(), msg);
@@ -1205,7 +1201,7 @@ public class ButtonHelperHeroes {
         p1.removePromissoryNote(id);
         p2.setPromissoryNote(id);
         if (id.contains("dspnveld")) {
-            PlayPN.resolvePNPlay(id, p2, game, event);
+            PromissoryNoteHelper.resolvePNPlay(id, p2, game, event);
         }
         boolean sendSftT = false;
         boolean sendAlliance = false;
@@ -1223,8 +1219,8 @@ public class ButtonHelperHeroes {
                 }
             }
         }
-        PNInfo.sendPromissoryNoteInfo(game, p1, false);
-        PNInfo.sendPromissoryNoteInfo(game, p2, false);
+        PromissoryNoteHelper.sendPromissoryNoteInfo(game, p1, false);
+        PromissoryNoteHelper.sendPromissoryNoteInfo(game, p2, false);
         String text = sendSftT ? "**Support for the Throne** " : (sendAlliance ? "**Alliance** " : "");
         message2 = p1.getRepresentation() + " sent " + Emojis.PN + text + "PN to " + ident2;
         MessageHelper.sendMessageToChannel(p2.getCorrectChannel(), message2);
@@ -1544,7 +1540,7 @@ public class ButtonHelperHeroes {
             MessageHelper.sendMessageToChannel(event.getChannel(), "No such Action Card ID found, please retry");
             return;
         }
-        ACInfo.sendActionCardInfo(game, p2, event);
+        ActionCardHelper.sendActionCardInfo(game, p2, event);
         MessageHelper.sendMessageToChannel(player.getCorrectChannel(),
             player.getRepresentation() + " has given " + Mapper.getActionCard(acID).getName() + " to "
                 + p2.getRepresentation());
@@ -1554,7 +1550,7 @@ public class ButtonHelperHeroes {
                 "The Voice United, the Cymiae hero, has given " + Mapper.getActionCard(acID).getName()
                     + " to you and you now have to discard 1A.C");
             String msg = p2.getRepresentationUnfogged() + " use buttons to discard.";
-            List<Button> buttons = ACInfo.getDiscardActionCardButtons(p2, false);
+            List<Button> buttons = ActionCardHelper.getDiscardActionCardButtons(p2, false);
             MessageHelper.sendMessageToChannelWithButtons(p2.getCardsInfoThread(), msg, buttons);
         }
     }
@@ -1940,7 +1936,7 @@ public class ButtonHelperHeroes {
             String message = notYssaril.getRepresentationUnfogged()
                 + " Kyver, Blade and Key, the Yssaril hero, has rejected your offering and is forcing you to discard 3 random ACs. The ACs have been automatically discarded.";
             MessageHelper.sendMessageToChannel(notYssaril.getCardsInfoThread(), message);
-            new DiscardACRandom().discardRandomAC(event, game, notYssaril, 3);
+            ActionCardHelper.discardRandomAC(event, game, notYssaril, 3);
             ButtonHelper.deleteMessage(event);
         }
 
